@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./PokeList.css";
 
 function Pokelist() {
@@ -10,21 +10,31 @@ function Pokelist() {
     );
     const data = await res.json();
 
-    function createPokemonObject(results) {
-      results.forEach(async (pokemon) => {
+    const newPokemons = await Promise.all(
+      data.results.map(async (pokemon) => {
         const res = await fetch(
           `https://pokeapi.co/api/v2/pokemon/${pokemon.name}`
         );
-        const data = await res.json();
-        setAllPokemons((currentList) => [...currentList, data]);
-        await allPokemons.sort((a, b) => a.id - b.id);
-      });
-    }
-    createPokemonObject(data.results);
-    console.log(allPokemons);
+        return res.json();
+      })
+    );
+
+    // Combine the newPokemons array with the existing allPokemons array
+    setAllPokemons((currentList) => [...currentList, ...newPokemons]);
   };
 
-  return <div></div>;
+  useEffect(() => {
+    getAllPokemons();
+  }, []); // No dependencies in the array
+
+  useEffect(() => {
+    // Log the updated allPokemons when it changes
+    console.log(allPokemons);
+  }, [allPokemons]);
+
+  return (
+    <div>{/* You can map through 'allPokemons' here to display them */}</div>
+  );
 }
 
 export default Pokelist;
